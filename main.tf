@@ -40,7 +40,7 @@ resource "aws_iam_role_policy_attachment" "lambda_ec2_role_policy_attach" {
 }
 
 resource "aws_instance" "my_instance" {
-  ami           = "ami-0c55b159cbfafe1f0"
+  ami           = "ami-0022f774911c1d690"
   instance_type = var.instance_type
 
   tags = {
