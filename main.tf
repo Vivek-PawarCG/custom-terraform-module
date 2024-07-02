@@ -65,23 +65,24 @@ data "template_file" "lambda_function" {
   EOF
 }
 
-resource "local_file" "lambda_file" {
-  content  = data.template_file.lambda_function.rendered
-  filename = "${path.module}/lambda_function.py"
-}
-
 data "archive_file" "lambda_zip" {
+  depends_on = [data.template_file.lambda_function]
+
   type        = "zip"
-  source_file = local.local_file.lambda_file.filename
   output_path = "${path.module}/lambda_function_payload.zip"
+  
+  source {
+    content  = data.template_file.lambda_function.rendered
+    filename = "lambda_function.py"
+  }
 }
 
 resource "aws_lambda_function" "start_ec2_instance" {
-  filename         = data.archive_file.lambda_zip.output_path
-  function_name    = "startEC2Instance"
-  role             = aws_iam_role.lambda_ec2_role.arn
-  handler          = "lambda_function.lambda_handler"
-  runtime          = "python3.8"
+  filename      = data.archive_file.lambda_zip.output_path
+  function_name = "startEC2Instance"
+  role          = aws_iam_role.lambda_ec2_role.arn
+  handler       = "lambda_function.lambda_handler"
+  runtime       = "python3.8"
 
   environment {
     variables = {
