@@ -48,28 +48,31 @@ resource "aws_instance" "my_instance" {
   }
 }
 
-data "local_file" "lambda_file" {
-  content  = <<-EOF
-  import boto3
-  import os
+data "template_file" "lambda_function" {
+  template = <<-EOF
+    import boto3
+    import os
 
-  def lambda_handler(event, context):
-      ec2_client = boto3.client('ec2')
-      instance_id = os.environ['INSTANCE_ID']
+    def lambda_handler(event, context):
+        ec2_client = boto3.client('ec2')
+        instance_id = os.environ['INSTANCE_ID']
 
-      response = ec2_client.start_instances(
-          InstanceIds=[instance_id],
-      )
+        response = ec2_client.start_instances(
+            InstanceIds=[instance_id],
+        )
 
-      return response
+        return response
   EOF
+}
 
+resource "local_file" "lambda_file" {
+  content  = data.template_file.lambda_function.rendered
   filename = "${path.module}/lambda_function.py"
 }
 
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = data.local_file.lambda_file.filename
+  source_file = local.local_file.lambda_file.filename
   output_path = "${path.module}/lambda_function_payload.zip"
 }
 
