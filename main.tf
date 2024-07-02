@@ -50,7 +50,7 @@ resource "aws_instance" "my_instance" {
 
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_dir  = "./lambda_code"
+  source_dir  = "lambda_code"
   output_path = "lambda_function_payload.zip"
 }
 
